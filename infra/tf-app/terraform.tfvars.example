@@ -1,0 +1,20 @@
+# Example Terraform variables configuration
+# Copy this to terraform.tfvars and customize as needed
+
+location            = "East US"
+resource_group_name = "rg-aks-app"
+aks_cluster_name    = "aks-cluster"
+acr_name           = "acr"
+node_count         = 2
+node_vm_size       = "Standard_B2s"
+kubernetes_version = "1.28.3"
+environment        = "dev"
+project_name       = "cst8918"
+
+# API Server Authorized IP Ranges - IMPORTANT: Replace with your actual IP ranges
+api_server_authorized_ip_ranges = [
+  "203.0.113.0/24",     # Example: Corporate office network
+  "198.51.100.0/24",    # Example: VPN network
+  # Add your actual public IP or corporate network ranges here
+  # You can get your current IP with: curl ifconfig.me
+]

@@ -1,0 +1,9 @@
+{
+  "name": "github-main-branch",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:mishsamir/cst8918-a12:ref:refs/heads/main",
+  "description": "GitHub Actions main branch federated credential",
+  "audiences": [
+    "api://AzureADTokenExchange"
+  ]
+}

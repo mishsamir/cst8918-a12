@@ -1,0 +1,9 @@
+{
+  "name": "github-pull-request",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:mishsamir/cst8918-a12:pull_request",
+  "description": "GitHub Actions pull request federated credential",
+  "audiences": [
+    "api://AzureADTokenExchange"
+  ]
+}
