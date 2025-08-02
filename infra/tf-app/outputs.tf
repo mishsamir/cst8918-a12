@@ -23,6 +23,16 @@ output "aks_node_resource_group" {
   value       = azurerm_kubernetes_cluster.main.node_resource_group
 }
 
+output "aks_network_plugin" {
+  description = "Network plugin used by AKS cluster"
+  value       = azurerm_kubernetes_cluster.main.network_profile[0].network_plugin
+}
+
+output "aks_network_policy" {
+  description = "Network policy used by AKS cluster"
+  value       = azurerm_kubernetes_cluster.main.network_profile[0].network_policy
+}
+
 output "acr_name" {
   description = "Name of the Azure Container Registry"
   value       = azurerm_container_registry.main.name

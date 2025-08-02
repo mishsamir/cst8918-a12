@@ -44,9 +44,10 @@ resource "azurerm_kubernetes_cluster" "main" {
   kubernetes_version  = var.kubernetes_version
 
   default_node_pool {
-    name       = "default"
-    node_count = var.node_count
-    vm_size    = var.node_vm_size
+    name           = "default"
+    node_count     = var.node_count
+    vm_size        = var.node_vm_size
+    vnet_subnet_id = azurerm_subnet.main.id
 
     upgrade_settings {
       max_surge = "10%"
@@ -58,7 +59,11 @@ resource "azurerm_kubernetes_cluster" "main" {
   }
 
   network_profile {
-    network_plugin = "kubenet"
+    network_plugin    = "azure"
+    network_policy    = "azure"
+    dns_service_ip    = "10.2.0.10"
+    service_cidr      = "10.2.0.0/24"
+    load_balancer_sku = "standard"
   }
 
   tags = {
@@ -109,7 +114,7 @@ resource "azurerm_subnet" "main" {
   name                 = "subnet-${var.project_name}-${var.environment}"
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = ["10.0.1.0/24"]
+  address_prefixes     = ["10.0.0.0/22"]
 }
 
 # Network Security Group
