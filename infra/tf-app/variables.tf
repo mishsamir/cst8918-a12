@@ -51,3 +51,15 @@ variable "project_name" {
   type        = string
   default     = "cst8918"
 }
+
+variable "api_server_authorized_ip_ranges" {
+  description = "Authorized IP ranges for AKS API server access"
+  type        = list(string)
+  default = [
+    "0.0.0.0/32" # Replace with your actual IP ranges - this is a placeholder
+    # Example corporate ranges:
+    # "203.0.113.0/24",     # Corporate office network
+    # "198.51.100.0/24",    # VPN network
+    # "20.0.0.0/8"          # Azure services (if needed)
+  ]
+}

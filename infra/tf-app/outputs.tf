@@ -33,6 +33,11 @@ output "aks_network_policy" {
   value       = azurerm_kubernetes_cluster.main.network_profile[0].network_policy
 }
 
+output "aks_api_server_authorized_ip_ranges" {
+  description = "Authorized IP ranges for AKS API server"
+  value       = azurerm_kubernetes_cluster.main.api_server_access_profile[0].authorized_ip_ranges
+}
+
 output "acr_name" {
   description = "Name of the Azure Container Registry"
   value       = azurerm_container_registry.main.name
