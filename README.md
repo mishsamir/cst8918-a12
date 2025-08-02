@@ -1,33 +1,182 @@
-CST8918 - DevOps: Infrastructure as Code  
-Prof. Robert McKenney
+# CST8918 Lab 12: Terraform CI/CD on Azure with GitHub Actions
 
-# Lab 12: Terraform CI/CD on Azure with GitHub Actions
+## Team Members
+- **[Your Name Here]** - [@yourgithubusername](https://github.com/yourgithubusername) - College ID: your-college-id
+- **[Partner Name Here]** - [@partnergithubusername](https://github.com/partnergithubusername) - College ID: partner-college-id
 
-## Background
+## Overview
 
-This lab is based on the scenario of an integrated git project with Terraform and Azure. Imagine that the project is a simple web application that is containerized and deployed to an Azure Kubernetes Service (AKS) cluster. The application and it's Dockerfile would be defined in the `app` folder.
+This project demonstrates Infrastructure as Code (IaC) using Terraform and GitHub Actions for a containerized web application deployed to Azure Kubernetes Service (AKS). The project showcases automated infrastructure deployment workflows including static analysis, integration testing, deployment, and drift detection.
 
-> [!IMPORTANT]
-> The application code is not provided in this lab. The focus is on the infrastructure as code (IaC) aspect of the example project. There is an empty `app` folder as a representation of the application code.
+## Project Structure
 
-The infrastructure is defined in a Terraform configuration in the `infra` folder. The Terraform configuration creates supporting resources in Azure and deploys the sample web application to the cluster. 
+```
+cst8918-a12/
+├── .github/
+│   └── workflows/
+│       ├── infra-ci-cd.yml              # Terraform plan on PR, apply on main
+│       ├── infra-drift-detection.yml    # Daily drift detection
+│       └── infra-static-tests.yml       # Static analysis (fmt + tflint)
+├── app/
+│   └── .gitkeep                         # Placeholder for containerized app
+├── infra/
+│   ├── az-federated-credential-params/  # Azure OIDC configurations
+│   │   ├── branch-main.json
+│   │   ├── production-deploy.json
+│   │   └── pull-request.json
+│   ├── tf-app/                          # Main application infrastructure
+│   │   ├── .tflint.hcl                  # TFLint configuration
+│   │   ├── main.tf                      # AKS, ACR, resource groups
+│   │   ├── outputs.tf                   # Connection info outputs
+│   │   ├── terraform.tf                 # Backend configuration
+│   │   └── variables.tf                 # Configurable variables
+│   └── tf-backend/                      # State storage infrastructure
+│       └── main.tf                      # Storage account for state
+├── docs/                                # Setup documentation
+├── screenshots/                         # Workflow screenshots
+├── .editorconfig
+├── .gitignore
+└── README.md
+```
 
-You will create several GitHub Actions CI/CD workflows for automating:
+## Infrastructure Components
 
-- **static code analysis** of a Terraform configuration on push to any branch
-- running all Terraform **integration tests** on pull request to the main branch
-- **deployment** of a Terraform configuration to Azure on merge to the main branch
-- daily **drift detection** of the deployed infrastructure v.s. the Terraform configuration
+### Azure Resources Created
 
-A separate Terraform "backend" configuration will create the storage account and container to store your Terraform state file for the application infrastructure.
+1. **Azure Kubernetes Service (AKS)**
+   - Managed Kubernetes cluster
+   - System-assigned managed identity
+   - Log Analytics workspace integration
 
-### Project folder structure
+2. **Azure Container Registry (ACR)**
+   - Private container registry
+   - AKS integration with AcrPull permissions
 
-When you are done, your project folder structure should look like this:
+3. **Supporting Resources**
+   - Resource groups with consistent tagging
+   - Log Analytics workspace for monitoring
+   - Proper RBAC configurations
 
-```plaintext
-cst8918-w25-lab12
-├── .github
+### Key Features
+
+- **Scalable Architecture**: Configurable node count and VM sizes
+- **Security Best Practices**: Managed identities, private networking
+- **Monitoring**: Integrated Log Analytics workspace
+- **Resource Management**: Consistent tagging and naming conventions
+
+## GitHub Actions Workflows
+
+### 1. Static Analysis (`infra-static-tests.yml`)
+**Trigger**: Push or PR affecting `infra/**`
+- Terraform format checking
+- TFLint static analysis
+- Terraform validation
+- Runs on all branches
+
+### 2. CI/CD Pipeline (`infra-ci-cd.yml`)
+**Trigger**: PR to main or push to main affecting `infra/tf-app/**`
+- **PR**: Terraform plan with output in comments
+- **Main**: Terraform apply with auto-approval
+- Azure OIDC authentication
+- Secure state management
+
+### 3. Drift Detection (`infra-drift-detection.yml`)
+**Trigger**: Daily schedule + manual dispatch
+- Detects infrastructure drift
+- Creates GitHub issues on drift detection
+- Automated monitoring of infrastructure changes
+
+## Configuration
+
+### Variables (terraform.tfvars)
+```hcl
+location            = "East US"
+resource_group_name = "rg-aks-app"
+aks_cluster_name    = "aks-cluster"
+acr_name           = "acr"
+node_count         = 2
+node_vm_size       = "Standard_B2s"
+kubernetes_version = "1.28.3"
+environment        = "dev"
+project_name       = "cst8918"
+```
+
+### Required GitHub Secrets
+- `AZURE_CLIENT_ID`: Service principal client ID
+- `AZURE_TENANT_ID`: Azure AD tenant ID  
+- `AZURE_SUBSCRIPTION_ID`: Target subscription ID
+- `TERRAFORM_STORAGE_ACCOUNT`: Backend storage account name
+- `TERRAFORM_STORAGE_KEY`: Storage account access key
+
+## Setup Instructions
+
+### 1. Azure Backend Setup
+```bash
+cd infra/tf-backend
+terraform init
+terraform plan
+terraform apply
+```
+
+### 2. Configure GitHub Secrets
+Set up the required secrets in your GitHub repository settings.
+
+### 3. Configure Azure OIDC
+Use the JSON files in `infra/az-federated-credential-params/` to configure federated credentials.
+
+### 4. Deploy Infrastructure
+Push changes to trigger the CI/CD pipeline or manually run workflows.
+
+## Key Outputs
+
+After successful deployment, the following information is available:
+
+- **AKS Cluster Name**: For kubectl configuration
+- **ACR Login Server**: For container image operations  
+- **Resource Group**: For Azure portal management
+- **Kubeconfig**: For cluster access (sensitive)
+
+## Best Practices Implemented
+
+- **Infrastructure as Code**: All resources defined in Terraform
+- **GitOps Workflow**: Infrastructure changes via Git
+- **Automated Testing**: Static analysis and validation
+- **Security**: OIDC authentication, managed identities
+- **Monitoring**: Drift detection and alerting
+- **Documentation**: Comprehensive outputs and tagging
+
+## Troubleshooting
+
+### Common Issues
+1. **Backend Configuration**: Ensure storage account name is correct
+2. **OIDC Setup**: Verify federated credential configuration
+3. **Permissions**: Check service principal has required Azure permissions
+4. **Resource Naming**: Ensure globally unique names for ACR
+
+### Useful Commands
+```bash
+# Connect to AKS cluster
+az aks get-credentials --resource-group <rg-name> --name <cluster-name>
+
+# List ACR repositories
+az acr repository list --name <acr-name>
+
+# Check Terraform state
+terraform state list
+```
+
+## Contributing
+
+1. Create feature branch from `main`
+2. Make infrastructure changes in `infra/tf-app/`
+3. Commit and push changes
+4. Create pull request to `main`
+5. Review Terraform plan in PR comments
+6. Merge to deploy to production
+
+## License
+
+This project is part of CST8918 coursework and is for educational purposes.
 │   └── workflows
 │       ├── infra-ci-cd.yml
 │       ├── infra-drift-detection.yml
